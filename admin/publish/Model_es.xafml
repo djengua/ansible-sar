@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Application>
+  <ActionDesign>
+    <Actions>
+      <Action Id="CopyPredefinedReport" Caption="Copiar Reporte Predefinido" />
+      <Action Id="ExecuteReport" Caption="Ejecutar Reporte" />
+      <Action Id="Export" Caption="Exportar a" />
+      <Action Id="ShowInReportV2" Caption="Mostrar en Reporte" ToolTip="Mostrar registros seleccionados en reporte" />
+      <Action Id="ShowReportDesignerV2" Caption="Mostrar en Diseñador" />
+    </Actions>
+    <ActionToContainerMapping>
+      <ActionContainer Id="Export" Caption="Exportar" />
+      <ActionContainer Id="Filters" Caption="Filtros" />
+      <ActionContainer Id="Save" Caption="Guardar" />
+    </ActionToContainerMapping>
+  </ActionDesign>
+  <BOModel>
+    <Class Name="DevExpress.ExpressApp.Blazor.Layout.LayoutEditor.RenameOptions">
+      <OwnMembers>
+        <Member Name="NewName" Caption="Nuevo Nombre" />
+      </OwnMembers>
+    </Class>
+    <Class Name="DevExpress.ExpressApp.StateMachine.Xpo.XpoTransition">
+      <OwnMembers>
+        <Member Name="SaveAndCloseView" Caption="Guardar y cerrar vista" />
+      </OwnMembers>
+    </Class>
+  </BOModel>
+  <Localization>
+    <LocalizationGroup Name="Confirmations">
+      <LocalizationItem Name="Cancel" Value="Los cambios no guardados se perderan, ¿Quieres proceder?" />
+      <LocalizationItem Name="SaveChanges" Value="Los cambios no guardados, se perderan. Quieres guardar tus cambios antes de salir?" />
+    </LocalizationGroup>
+    <LocalizationGroup Name="DialogButtons">
+      <LocalizationItem Name="Discard" Value="Descartar cambios" />
+      <LocalizationItem Name="Save" Value="Guardar" />
+      <LocalizationItem Name="SaveChanges" Value="Guardar cambios" />
+    </LocalizationGroup>
+    <LocalizationGroup Name="Messages">
+      <LocalizationGroup Name="ErrorPage">
+        <LocalizationItem Name="RefreshPage" Value="Actualizar página" />
+        <LocalizationItem Name="ShowDetails" Value="Mostrar detalles" />
+      </LocalizationGroup>
+      <LocalizationItem Name="ModifiedObjectWarning" Value="Debes guardar tus cambios pendientes antes de editar este registro." />
+    </LocalizationGroup>
+    <LocalizationGroup Name="Security">
+      <LocalizationGroup Name="LoginPage">
+        <LocalizationItem Name="ExternalAuthorizationActionSeparator" Value="o" />
+        <LocalizationItem Name="TryAgain" Value="Intentar otra vez" />
+      </LocalizationGroup>
+    </LocalizationGroup>
+    <LocalizationGroup Name="VisualComponents">
+      <LocalizationGroup Name="GridContextMenu">
+        <LocalizationItem Name="MenuColumnClearFilter" Value="Limpiar Filtro" />
+      </LocalizationGroup>
+      <LocalizationGroup Name="LoadingIndicator">
+        <LocalizationItem Name="Loading" Value="Cargando..." />
+      </LocalizationGroup>
+    </LocalizationGroup>
+  </Localization>
+  <Validation>
+    <Contexts>
+      <ValidationContext Id="Save" Caption="Guardar" />
+    </Contexts>
+    <Rules>
+      <RuleUniqueValue Id="PermissionPolicyUser_UserName_RuleUniqueValue" CustomMessageTemplate="El login con el usuario capturado ya fue registrado en el sistema." />
+    </Rules>
+  </Validation>
+  <Views>
+    <DetailView Id="AuthenticationStandardLogonParameters_Blazor_DetailView">
+      <Items>
+        <StaticText Id="LogonText" Text="Capture usuario y contraseña" />
+      </Items>
+    </DetailView>
+    <DetailView Id="ChangePasswordParameters_Blazor_DetailView">
+      <Items>
+        <StaticText Id="ChangePasswordText" Text="Para cambiar tu passsword, por favor capture el viejo y el nuevo en los campos siguientes." />
+      </Items>
+    </DetailView>
+  </Views>
+</Application>

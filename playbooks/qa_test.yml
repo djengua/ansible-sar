@@ -1,0 +1,80 @@
+- hosts: qa_test
+  become: true
+  vars_files:
+    - ../group_vars/qa_test/qa_test.yml
+
+  tasks:
+    - name: Instalar dependencias para descomprimir zip
+      ansible.builtin.apt:
+        name:
+          - unzip
+        state: present
+        update_cache: true
+    - name: Crear directorio base
+      ansible.builtin.file:
+        path: "{{ sar_base_dir }}/admin"
+        state: directory
+        mode: "0755"
+
+    - name: Copiar Dockerfile
+      ansible.builtin.copy:
+        src: ../admin/Dockerfile
+        dest: "{{ sar_base_dir }}/admin/Dockerfile"
+        mode: "0644"
+
+    - name: Copiar publish de la app
+      ansible.builtin.copy:
+        src: ../admin/publish.zip
+        dest: "{{ sar_base_dir }}/admin/"
+        mode: preserve
+
+    - name: Descomprimir publish.zip
+      ansible.builtin.unarchive:
+        src: "{{ sar_base_dir }}/admin/publish.zip"
+        dest: "{{ sar_base_dir }}/admin/"
+        remote_src: true
+    - name: Asegurar permisos de publish
+      ansible.builtin.file:
+        path: "{{ sar_base_dir }}/admin/publish"
+        state: directory
+        recurse: true
+        mode: "0755"
+    - name: Ver uso de Docker
+      ansible.builtin.command: docker system df
+      register: docker_df
+      changed_when: false
+
+    - name: Mostrar uso de Docker
+      ansible.builtin.debug:
+        var: docker_df.stdout
+
+    - name: Construir imagen Docker
+      community.docker.docker_image:
+        name: "{{ image_name }}"
+        tag: "{{ image_tag }}"
+        source: build
+        build:
+          path: "{{ sar_base_dir }}/admin"
+          dockerfile: Dockerfile
+          pull: true
+    - name: Mostrar resultado del build
+      ansible.builtin.debug:
+        var: docker_build_result
+        
+    - name: Eliminar publish.zip
+      ansible.builtin.file:
+        path: "{{ sar_base_dir }}/admin/publish.zip"
+        state: absent
+
+    - name: Eliminar carpeta publish descomprimida
+      ansible.builtin.file:
+        path: "{{ sar_base_dir }}/admin/publish"
+        state: absent
+
+    # - name: Limpiar cache de build de Docker
+    #   ansible.builtin.command: docker builder prune -af
+    #   changed_when: true
+
+    # - name: Limpiar recursos no usados de Docker
+    #   ansible.builtin.command: docker system prune -af
+    #   changed_when: true

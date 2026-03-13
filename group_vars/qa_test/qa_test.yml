@@ -1,0 +1,4 @@
+sar_base_dir: /home/ubuntu/qa_test
+
+image_name: dxar
+image_tag: dx_admin
