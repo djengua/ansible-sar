@@ -1,0 +1,22 @@
+services:
+  dx-app:
+    image: dxar:dx_admin
+    container_name: dx-asuntos-relevantes
+    restart: unless-stopped
+    ports:
+      - "5401:8080"
+    volumes:
+    - dxar_keys:/keys
+    networks:
+      - sar-network
+
+volumes:
+  dxar_keys:
+    driver: local
+
+networks:
+  sar-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.50.0/24

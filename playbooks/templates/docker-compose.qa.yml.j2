@@ -16,42 +16,7 @@ services:
       - "5008:5008"
     networks:
       - sar-network
-  # Proxy reverso - Nginx
-  dx-app:
-    image: dxar:dx_admin
-    container_name: dx-asuntos-relevantes
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    volumes:
-    - dxar_keys:/keys
-    networks:
-      - sar-network
-  nginx:
-    image: nginx:alpine
-    container_name: sar-proxy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./logs/nginx:/var/log/nginx
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - gql-sep-asuntos-relevantes
-      - dx-app
-    networks:
-      - sar-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-
-volumes:
-  dxar_keys:
-    driver: local
+ 
 
 networks:
   sar-network:

@@ -130,5 +130,6 @@ ansible-playbook webservers.yml
 
 ### Ejecutar playbook
 ```bash
-ansible-playbook -i inventory/qa.ini playbooks/sar.yml
+ansible-playbook -i inventory/qa.backend.ini playbooks/sar_backend.yml -K
+ansible-playbook -i inventory/qa.frontend.ini playbooks/sar_frontend.yml -K
 ```

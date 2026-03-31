@@ -1,7 +1,8 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
-# Dependencias necesarias para DevExpress Reporting en Linux (runtime only)
-# Instalación en dos fases para manejar paquetes opcionales
+# ==============================
+# Dependencias DevExpress Linux
+# ==============================
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # ICU para globalización
     libicu72 \
@@ -23,7 +24,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fontconfig \
  && rm -rf /var/lib/apt/lists/*
 
-# Habilitar repositorio contrib e instalar fuentes de Microsoft
+# ==============================
+# Repositorios + fuentes MS
+# ==============================
 RUN echo "deb http://deb.debian.org/debian bookworm main contrib" > /etc/apt/sources.list && \
     echo "deb http://deb.debian.org/debian bookworm-updates main contrib" >> /etc/apt/sources.list && \
     echo "deb http://deb.debian.org/debian-security bookworm-security main contrib" >> /etc/apt/sources.list && \
@@ -35,12 +38,16 @@ RUN echo "deb http://deb.debian.org/debian bookworm main contrib" > /etc/apt/sou
     fc-cache -f -v && \
     rm -rf /var/lib/apt/lists/*
 
-# Instalar libgdiplus (crítico para DevExpress)
+# ==============================
+# libgdiplus (CRÍTICO)
+# ==============================
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgdiplus \
  && rm -rf /var/lib/apt/lists/*
 
-# Instalar fuentes (algunos paquetes pueden no estar disponibles)
+# ==============================
+# Fuentes adicionales
+# ==============================
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     fonts-dejavu-core \
@@ -51,26 +58,47 @@ RUN apt-get update && \
     fonts-noto-mono || true && \
     rm -rf /var/lib/apt/lists/*
 
-# Actualizar cache de fuentes
+# Cache de fuentes
 RUN fc-cache -f -v
 
-# Globalización por ICU
+# ==============================
+# Globalización .NET
+# ==============================
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
+# ==============================
+# Zona horaria MÉXICO (FIX HORA)
+# ==============================
+ENV TZ=America/Mexico_City
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tzdata \
+ && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+ && echo $TZ > /etc/timezone \
+ && rm -rf /var/lib/apt/lists/*
+
+# ==============================
 # Kestrel
+# ==============================
 ENV ASPNETCORE_URLS=http://+:8080
 
-# Rutas de cache/temp
+# ==============================
+# Cache / temp
+# ==============================
 ENV XDG_CACHE_HOME=/app_data/.cache
 ENV TMPDIR=/tmp
 ENV TEMP=/tmp
 ENV TMP=/tmp
 
-# Variables para mejorar el rendimiento de DevExpress
+# ==============================
+# DevExpress performance
+# ==============================
 ENV DEVEXPRESS_REPORTING_TEMP_FOLDER=/tmp/devexpress
 ENV DEVEXPRESS_REPORTING_ENABLE_ASYNC=true
 
-# Crear usuario/grupo fijos y dar permisos a carpetas escribibles
+# ==============================
+# Usuario no-root + permisos
+# ==============================
 RUN set -eux; \
     groupadd -g 10001 appgroup; \
     useradd -u 10001 -g appgroup -m appuser; \
@@ -80,17 +108,20 @@ RUN set -eux; \
 
 EXPOSE 8080
 
-# Si persistes Data Protection en host, mantén este volumen
+# Persistencia Data Protection
 VOLUME ["/keys"]
 
-# Copia el publish
+# ==============================
+# App
+# ==============================
 COPY publish /app
 
-# Ejecutar como no-root
 USER appuser
 WORKDIR /app
 
+# ==============================
 # Healthcheck
+# ==============================
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -fsS http://localhost:8080/ || exit 1
 

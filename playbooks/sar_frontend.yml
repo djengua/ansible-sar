@@ -1,16 +1,20 @@
 - hosts: qa
   become: true
   vars_files:
-    - ../group_vars/qa/sar.yml
+    - ../group_vars/qa/sar.frontend.yml
 
   tasks:
 
+    # - name: Instalar dependencias para descomprimir zip
+    #   ansible.builtin.apt:
+    #     name:
+    #       - unzip
+    #     state: present
+    #     update_cache: true
     - name: Instalar dependencias para descomprimir zip
-      ansible.builtin.apt:
-        name:
-          - unzip
+      ansible.builtin.package:
+        name: unzip
         state: present
-        update_cache: true
 
     - name: Crear directorio base
       ansible.builtin.file:
@@ -27,7 +31,8 @@
     - name: Copiar publish de la app
       ansible.builtin.copy:
         src: ../admin/publish.zip
-        dest: "{{ sar_base_dir }}/admin/"
+        # dest: "{{ sar_base_dir }}/admin/"
+        dest: "{{ sar_base_dir }}/admin/publish.zip"
         mode: preserve
 
     - name: Descomprimir publish.zip
@@ -61,6 +66,7 @@
           path: "{{ sar_base_dir }}/admin"
           dockerfile: Dockerfile
           pull: true
+      register: docker_build_result
 
     - name: Mostrar resultado del build
       ansible.builtin.debug:
@@ -76,65 +82,16 @@
         path: "{{ sar_base_dir }}/admin/publish"
         state: absent
 
-    - name: Crear directorio nginx/ssl
-      file:
-        path: "{{ sar_base_dir }}/nginx/ssl"
-        state: directory
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: "0755"
-
-    # - name: Clonar solo la rama y sin blobs
-    #   ansible.builtin.command:
-    #     cmd: >
-    #       git clone --depth 1 --single-branch --branch {{ repo_branch }}
-    #       --filter=blob:none --sparse {{ sar_repo_url }} {{ sar_base_dir }}/SAR
-    #   args:
-    #     creates: "{{ sar_base_dir }}/SAR/.git"
-
-    - name: Clonar / Actualizar repo de SAR
-      ansible.builtin.git:
-        repo: "{{ sar_repo_url }}"
-        dest: "{{ sar_base_dir }}/SAR"
-        version: "{{ repo_branch }}"
-        depth: 1
-        single_branch: true
-        force: true
-        accept_hostkey: true
-
-    - name: Sincronizar app al servidor
-      ansible.posix.synchronize:
-        src: ../admin/
-        dest: "{{ sar_base_dir }}/admin"
-        recursive: true
-        delete: false
-    
-    - name: Activar sparse-checkout para solo el API
-      ansible.builtin.command:
-        cmd: git sparse-checkout set gql-sep-asuntos-relevantes
-        chdir: "{{ sar_base_dir }}/SAR"
-
-    # - name: Copiar PEM al directorio ssl
-    #   copy:
-    #     src: /home/ubuntu/projects/nginx/ssl/cloudflare-origin.pem
-    #     dest: /home/ubuntu/sar/nginx/ssl/cloudflare-origin.pem
-    #     remote_src: yes
-    #     owner: "{{ ansible_user }}"
-    #     group: "{{ ansible_user }}"
-    #     mode: "0644"
-
-    # - name: Copiar KEY al directorio ssl
-    #   copy:
-    #     src: /home/ubuntu/projects/nginx/ssl/cloudflare-origin.key
-    #     dest: /home/ubuntu/sar/nginx/ssl/cloudflare-origin.key
-    #     remote_src: yes
-    #     owner: "{{ ansible_user }}"
-    #     group: "{{ ansible_user }}"
-    #     mode: "0600"
+    # - name: Sincronizar app al servidor
+    #   ansible.posix.synchronize:
+    #     src: ../admin/
+    #     dest: "{{ sar_base_dir }}/admin"
+    #     recursive: true
+    #     delete: false
     
     - name: Copiar .env
       ansible.builtin.template:
-        src: env.j2
+        src: frontend.env.j2
         dest: "{{ sar_base_dir }}/.env"
         owner: root
         group: root
@@ -142,16 +99,8 @@
     
     - name: Copiar docker-compose.yml
       ansible.builtin.template:
-        src: docker-compose.qa.yml.j2
+        src: docker-compose.qa.front.yml.j2
         dest: "{{ sar_base_dir }}/docker-compose.yml"
-        owner: root
-        group: root
-        mode: "0644"
-
-    - name: Copiar nginx.conf
-      ansible.builtin.template:
-        src: nginx.qa.conf.j2
-        dest: "{{ sar_base_dir }}/nginx/nginx.conf"
         owner: root
         group: root
         mode: "0644"
@@ -160,5 +109,5 @@
       community.docker.docker_compose_v2:
         project_src: "{{ sar_base_dir }}"
         state: present
-        build: always
+        build: never
 

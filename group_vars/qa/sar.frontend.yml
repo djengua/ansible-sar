@@ -1,0 +1,5 @@
+sar_base_dir: /home/sar
+image_name: dxar
+image_tag: dx_admin
+
+node_env: production
